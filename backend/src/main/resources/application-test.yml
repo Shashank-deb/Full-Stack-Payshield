@@ -1,0 +1,107 @@
+# backend/src/test/resources/application-test.yml
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  h2:
+    console:
+      enabled: true
+
+  flyway:
+    enabled: false
+
+  mail:
+    host: localhost
+    port: 25
+    username: test
+    password: test
+
+# CRITICAL: Application encryption configuration for tests
+app:
+  encryption:
+    key: ${PSP_AES_KEY:NywLhbIA9UvNfurxHK6JkZKYP7g6M4k1qGPAXMMppiQ=}  # Base64 encoded 32-byte key
+    key-version: 1
+    algorithm: AES-256-GCM
+
+  # File upload settings
+  upload:
+    max-file-size: 10MB
+    validate-content: false  # Disable for tests
+    strict-mime-check: false # Disable for tests
+
+  # ClamAV disabled for tests
+  clamav:
+    enabled: false
+    fail-secure: false
+
+  # Storage settings
+  storage:
+    basePath: ${java.io.tmpdir}/payshield-test
+
+  # MFA settings for tests
+  mfa:
+    totp:
+      issuer-name: PayShield-Test
+      digits: 6
+      period-seconds: 30
+      window-size: 1
+    backup-codes:
+      count: 10
+      length: 8
+    trusted-devices:
+      enabled: true
+      expiry-days: 30
+    rate-limiting:
+      max-attempts: 5
+      lockout-duration-minutes: 60
+      window-minutes: 15
+
+# Security configuration for tests
+security:
+  jwt:
+    secret: test-jwt-secret-key-that-is-long-enough-for-hmac-sha256-algorithm-tests
+    ttl-seconds: 3600
+
+# Bootstrap configuration for tests
+bootstrap:
+  admin:
+    email: test-admin@example.com
+    password: test-password
+  defaultTenantId: 00000000-0000-0000-0000-000000000001
+
+# Logging configuration for tests
+logging:
+  level:
+    root: WARN
+    com.payshield.frauddetector: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.boot.test: DEBUG
+
+# Disable OpenAPI for tests
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# Test-specific settings
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

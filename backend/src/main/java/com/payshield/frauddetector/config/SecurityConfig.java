@@ -101,7 +101,7 @@ public class SecurityConfig {
                       .requestMatchers("/admin/**").hasRole("ADMIN") // ✅ NEW: Admin encryption endpoints
 
                       // Invoice endpoints - analysts and admins can upload, all roles can view
-                      .requestMatchers(HttpMethod.POST, "/invoices/upload").hasAnyRole("ANALYST", "ADMIN")
+                      .requestMatchers(HttpMethod.POST, "/invoices/upload").hasAnyRole("ANALYST", "ADMIN","MFA_PENDING")
                       .requestMatchers("/invoices/**").hasAnyRole("ANALYST", "ADMIN", "APPROVER")
 
                       // Cases endpoints - specifically require APPROVER or ADMIN
