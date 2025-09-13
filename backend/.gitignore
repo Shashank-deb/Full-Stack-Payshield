@@ -1,0 +1,141 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Security - Environment Variables ###
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+### Storage ###
+var/storage/
+storage/
+
+### Logs ###
+logs/
+*.log
+
+
+
+# Secrets
+.env.backup
+
+# Build & IDE
+.idea/
+.DS_Store
+
+# Additional Security - All credential files
+*.env*
+.env.*
+.env-*
+env.*
+environment.*
+credentials.*
+secrets.*
+
+# Backup files
+*.backup
+*.bak
+*.old
+*.orig
+*.save
+
+# IDE and OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ClamAV DB
+/data/clamav/db/*.cvd
+
+# ==============================================================================
+# ENHANCED SECURITY - All credential and environment files
+# ==============================================================================
+
+# Environment files (all variations)
+.env
+.env.*
+.env-*
+env.*
+environment.*
+
+# Credential files
+credentials.*
+secrets.*
+config/secrets.*
+config/credentials.*
+
+# Backup files that might contain secrets
+*.env.backup
+*.env.bak
+*.env.old
+*.env.orig
+*.env.save
+
+# Key files
+*.key
+*.pem
+*.p12
+*.jks
+keystore.*
+truststore.*
+
+# Database backup files (might contain sensitive data)
+*.sql.gz
+*.sql.bz2
+*.dump
+*.backup
+
+# Log files (might contain sensitive data)
+logs/
+*.log
+*.log.*
+
+# IDE and OS files that might cache secrets
+.vscode/settings.json
+.idea/dataSources.xml
+.idea/dataSources.local.xml
+.idea/workspace.xml
+
+# Temporary files
+temp/
+tmp/
+.tmp/
+
+# Docker secrets
+docker-compose.override.yml
+docker-compose.prod.yml
