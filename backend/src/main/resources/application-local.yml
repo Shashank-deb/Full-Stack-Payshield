@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/payshield_local
+    url: jdbc:postgresql://localhost:5432/payshield?TimeZone=Asia/Kolkata
     username: payshield
-    password: payshield
+    password: payshield123
   jpa:
     hibernate:
       ddl-auto: update
@@ -59,3 +59,11 @@ logging:
     org.apache.catalina.core.ContainerBase: INFO
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+app:
+  encryption:
+    key: ${PSP_AES_KEY:NywLhbIA9UvNfurxHK6JkZKYP7g6M4k1qGPAXMMppiQ=}
+    key-version: ${ENCRYPTION_KEY_VERSION:1}
+    algorithm: ${ENCRYPTION_ALGORITHM:AES-256-GCM}
+
+

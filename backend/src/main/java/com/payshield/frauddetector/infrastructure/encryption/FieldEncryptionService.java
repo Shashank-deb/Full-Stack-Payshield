@@ -42,7 +42,8 @@ public class FieldEncryptionService {
     private final ObjectMapper objectMapper;
 
     public FieldEncryptionService(
-            @Value("${PSP_AES_KEY:}") String base64Key, // ✅ Changed from ${app.encryption.key} to ${PSP_AES_KEY}
+//            @Value("${PSP_AES_KEY:}") String base64Key, // ✅ Changed from ${app.encryption.key} to ${PSP_AES_KEY}
+            @Value("${app.encryption.key:}") String base64Key,
             @Value("${app.encryption.key-version:1}") int keyVersion,
             ObjectMapper objectMapper) {
         

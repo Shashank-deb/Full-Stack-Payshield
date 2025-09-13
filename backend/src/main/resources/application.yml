@@ -1,11 +1,13 @@
 spring:
   application:
     name: payshield-core
+  profiles:
+    active: local
   mail:
-    host: ${MAIL_HOST:}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USER:}
-    password: ${MAIL_PASS:}
+    host: smtp.gmail.com
+    port: 587
+    username: sharmashashank446@gmail.com
+    password: thkp njdn qpam rvdt
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
@@ -35,7 +37,6 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-  # Enhanced file upload security - Step 5
   servlet:
     multipart:
       max-file-size: ${MAX_FILE_SIZE:10MB}
@@ -55,11 +56,7 @@ server:
     include-stacktrace: never
     include-message: never
     include-binding-errors: never
-
-  # FIXED: Use correct Spring Boot 3.x property name
   max-http-request-header-size: ${MAX_HEADER_SIZE:8KB}
-
-  # Modern Spring Boot 3.x Tomcat configuration
   tomcat:
     connection-timeout: 20s
     keep-alive-timeout: 20s
@@ -96,7 +93,6 @@ bootstrap:
     password: ${BOOTSTRAP_ADMIN_PASSWORD}
   defaultTenantId: ${BOOTSTRAP_DEFAULT_TENANT_ID:00000000-0000-0000-0000-000000000001}
 
-# Application configuration with Step 5 enhancements
 app:
   outbox:
     enabled: ${OUTBOX_ENABLED:true}
@@ -106,7 +102,6 @@ app:
   storage:
     basePath: ${STORAGE_BASE_PATH:var/storage}
 
-  # File Upload Security Configuration - Step 5
   upload:
     max-file-size: ${MAX_FILE_SIZE:10MB}
     allowed-mime-types:
@@ -114,7 +109,6 @@ app:
     validate-content: ${VALIDATE_FILE_CONTENT:true}
     strict-mime-check: ${STRICT_MIME_CHECK:true}
 
-  # ClamAV Antivirus Configuration - Step 5
   clamav:
     enabled: ${CLAMAV_ENABLED:false}
     host: ${CLAMAV_HOST:clamav}
@@ -123,70 +117,47 @@ app:
     connection-timeout: ${CLAMAV_CONNECTION_TIMEOUT:5000}
     fail-secure: ${CLAMAV_FAIL_SECURE:false}
 
-  # Field-Level Encryption Configuration - Step 9
   encryption:
     key: ${PSP_AES_KEY}
     algorithm: AES-256-GCM
     key-version: 1
-    # For production: consider using key files or vault integration
     # key-file: ${PSP_AES_KEY_FILE:/secrets/encryption.key}
-      # ==========================================================================
-      # 🔐 NEW: MULTI-FACTOR AUTHENTICATION (MFA) CONFIGURATION
-      # ADD THIS ENTIRE SECTION TO YOUR EXISTING application.yml
-      # ==========================================================================
+
     mfa:
-        # TOTP Configuration
-        totp:
-          issuer-name: ${MFA_ISSUER_NAME:PayShield}
-          algorithm: ${MFA_ALGORITHM:HmacSHA1} # HmacSHA1, HmacSHA256, HmacSHA512
-          digits: ${MFA_DIGITS:6} # 6 or 8 digit codes
-          period-seconds: ${MFA_PERIOD_SECONDS:30} # Time window for TOTP
-          window-size: ${MFA_WINDOW_SIZE:1} # Allow codes from previous/next time window
+      totp:
+        issuer-name: ${MFA_ISSUER_NAME:PayShield}
+        algorithm: ${MFA_ALGORITHM:HmacSHA1}
+        digits: ${MFA_DIGITS:6}
+        period-seconds: ${MFA_PERIOD_SECONDS:30}
+        window-size: ${MFA_WINDOW_SIZE:1}
+      secrets:
+        secret-length: ${MFA_SECRET_LENGTH:32}
+      qr-code:
+        width: ${MFA_QR_WIDTH:300}
+        height: ${MFA_QR_HEIGHT:300}
+      backup-codes:
+        count: ${MFA_BACKUP_CODES_COUNT:10}
+        length: ${MFA_BACKUP_CODE_LENGTH:8}
+      rate-limiting:
+        max-attempts: ${MFA_MAX_ATTEMPTS:5}
+        window-minutes: ${MFA_RATE_WINDOW_MINUTES:15}
+        lockout-duration-minutes: ${MFA_LOCKOUT_DURATION_MINUTES:60}
+      trusted-devices:
+        enabled: ${MFA_TRUSTED_DEVICES_ENABLED:true}
+        expiry-days: ${MFA_TRUSTED_DEVICE_EXPIRY_DAYS:30}
+        max-devices-per-user: ${MFA_MAX_TRUSTED_DEVICES:5}
+      security:
+        enable-location-tracking: ${MFA_ENABLE_LOCATION_TRACKING:true}
+        enable-device-fingerprinting: ${MFA_ENABLE_DEVICE_FINGERPRINTING:true}
+        suspicious-location-threshold-km: ${MFA_SUSPICIOUS_LOCATION_THRESHOLD:500}
+      cache:
+        failed-attempts-ttl-minutes: ${MFA_CACHE_FAILED_ATTEMPTS_TTL:60}
+        device-fingerprint-ttl-hours: ${MFA_CACHE_DEVICE_FINGERPRINT_TTL:24}
+      notifications:
+        notify-on-new-device: ${MFA_NOTIFY_NEW_DEVICE:true}
+        notify-on-suspicious-login: ${MFA_NOTIFY_SUSPICIOUS_LOGIN:true}
+        notify-on-backup-code-usage: ${MFA_NOTIFY_BACKUP_CODE_USAGE:true}
 
-        # Secret Generation
-        secrets:
-          secret-length: ${MFA_SECRET_LENGTH:32} # Bytes for TOTP secret
-
-        # QR Code Generation
-        qr-code:
-          width: ${MFA_QR_WIDTH:300}
-          height: ${MFA_QR_HEIGHT:300}
-
-        # Backup Codes
-        backup-codes:
-          count: ${MFA_BACKUP_CODES_COUNT:10}
-          length: ${MFA_BACKUP_CODE_LENGTH:8}
-
-        # Rate Limiting & Security
-        rate-limiting:
-          max-attempts: ${MFA_MAX_ATTEMPTS:5}
-          window-minutes: ${MFA_RATE_WINDOW_MINUTES:15}
-          lockout-duration-minutes: ${MFA_LOCKOUT_DURATION_MINUTES:60}
-
-        # Trusted Devices
-        trusted-devices:
-          enabled: ${MFA_TRUSTED_DEVICES_ENABLED:true}
-          expiry-days: ${MFA_TRUSTED_DEVICE_EXPIRY_DAYS:30}
-          max-devices-per-user: ${MFA_MAX_TRUSTED_DEVICES:5}
-
-        # Geolocation & Device Fingerprinting
-        security:
-          enable-location-tracking: ${MFA_ENABLE_LOCATION_TRACKING:true}
-          enable-device-fingerprinting: ${MFA_ENABLE_DEVICE_FINGERPRINTING:true}
-          suspicious-location-threshold-km: ${MFA_SUSPICIOUS_LOCATION_THRESHOLD:500}
-
-        # Cache Configuration for MFA
-        cache:
-          failed-attempts-ttl-minutes: ${MFA_CACHE_FAILED_ATTEMPTS_TTL:60}
-          device-fingerprint-ttl-hours: ${MFA_CACHE_DEVICE_FINGERPRINT_TTL:24}
-
-        # Notifications
-        notifications:
-          notify-on-new-device: ${MFA_NOTIFY_NEW_DEVICE:true}
-          notify-on-suspicious-login: ${MFA_NOTIFY_SUSPICIOUS_LOGIN:true}
-          notify-on-backup-code-usage: ${MFA_NOTIFY_BACKUP_CODE_USAGE:true}
-
-# Step 11: OpenAPI/Swagger Configuration
 springdoc:
   api-docs:
     enabled: ${API_DOCS_ENABLED:true}
@@ -198,7 +169,6 @@ springdoc:
     path: /swagger-ui.html
     config-url: /v3/api-docs/swagger-config
     url: /v3/api-docs
-    # Enhanced Swagger UI features
     display-request-duration: true
     groups-order: DESC
     operations-sorter: method
@@ -206,13 +176,10 @@ springdoc:
     use-root-path: true
     try-it-out-enabled: true
     filter: true
-    # OAuth2 configuration placeholder (for future MFA integration)
     oauth2-redirect-url: /swagger-ui/oauth2-redirect.html
-  # Show actual class names instead of generic "Object"
   show-actuator: false
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
-  # Group endpoints by tags
   group-configs:
     - group: 'authentication'
       display-name: 'Authentication APIs'
@@ -227,7 +194,6 @@ springdoc:
       display-name: 'Administration APIs'
       paths-to-match: '/outbox/**'
 
-# Logging configuration - container-friendly paths
 logging:
   level:
     org.springframework.security: ${SECURITY_LOG_LEVEL:WARN}
@@ -239,7 +205,6 @@ logging:
     com.payshield.frauddetector.api.InvoiceController: INFO
     org.springframework.web.multipart: ${MULTIPART_LOG_LEVEL:WARN}
     org.apache.tika: ${TIKA_LOG_LEVEL:WARN}
-    # Reduce Tika external parser noise
     org.apache.tika.parser.external: WARN
     org.apache.tika.parser.ocr: WARN
   pattern:
@@ -252,7 +217,6 @@ logging:
       total-size-cap: 500MB
       max-history: 30
 
-# OpenTelemetry configuration
 otel:
   resource:
     attributes: service.name=${spring.application.name:payshield-core}
@@ -261,17 +225,12 @@ otel:
       endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:}
 
 ---
+
 # Local development profile
 spring:
   config:
     activate:
       on-profile: local
-
-  # Local development database
-  datasource:
-    url: jdbc:postgresql://db:5432/payshield
-    username: payshield
-    password: payshield
 
   jpa:
     hibernate:
@@ -303,30 +262,25 @@ bootstrap:
     password: 8eXlClc9INVRyGQ8
   defaultTenantId: 00000000-0000-0000-0000-000000000001
 
-# Local development settings - Step 5 & 11
 app:
   clamav:
-    enabled: true  # Enable ClamAV in local for testing
+    enabled: true
     fail-secure: false
   upload:
     strict-mime-check: true
     validate-content: true
 
-# Step 11: Full Swagger UI enabled in local development
 springdoc:
   api-docs:
     enabled: true
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
-    # Local development enhancements
     try-it-out-enabled: true
     filter: true
     display-request-duration: true
-    # Show all endpoint groups
     urls-primary-name: 'PayShield API v1.0'
 
-# Enhanced local development logging
 logging:
   level:
     root: INFO
@@ -344,22 +298,21 @@ logging:
     org.apache.tika: DEBUG
     org.springframework.web.servlet.DispatcherServlet: DEBUG
     org.springframework.web.filter: DEBUG
-    # Reduce external parser noise in local too
     org.apache.tika.parser.external: WARN
     org.apache.tika.parser.ocr: WARN
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
   file:
-    name: # No file logging in local development
+    name:
 
 ---
-# Production profile with full security enabled
+
+# Production profile
 spring:
   config:
     activate:
       on-profile: production
 
-# Production security settings
 app:
   clamav:
     enabled: true
@@ -369,12 +322,10 @@ app:
   upload:
     strict-mime-check: true
     validate-content: true
-#  encryption:
-#    # Prefer file-based secret if provided, else inline key
-#    # Do not set real values here; they come from env or secrets
-#    algorithm: AES/GCM/NoPadding
-#    key: ${APP_ENCRYPTION_KEY:}
-#    key-file: ${APP_ENCRYPTION_KEY_FILE:}
+  # encryption:
+  #   algorithm: AES/GCM/NoPadding
+  #   key: ${APP_ENCRYPTION_KEY:}
+  #   key-file: ${APP_ENCRYPTION_KEY_FILE:}
 
 server:
   error:
@@ -382,34 +333,31 @@ server:
     include-message: never
     include-binding-errors: never
 
-# Step 11: Disable Swagger UI in production for security
 springdoc:
   api-docs:
     enabled: false
   swagger-ui:
     enabled: false
 
-# Production logging
 logging:
   level:
     root: WARN
     com.payshield.frauddetector: INFO
     com.payshield.frauddetector.infrastructure.security: INFO
     com.payshield.frauddetector.api.InvoiceController: INFO
-    # Completely silence external parser logs in production
     org.apache.tika.parser.external: ERROR
     org.apache.tika.parser.ocr: ERROR
   file:
     name: /app/logs/payshield.log
 
 ---
-# Step 11: Testing profile for automated tests
+
+# Testing profile
 spring:
   config:
     activate:
       on-profile: test
 
-  # In-memory H2 database for fast tests
   datasource:
     url: jdbc:h2:mem:testdb
     username: sa
@@ -421,11 +369,9 @@ spring:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
 
-  # Disable external integrations in tests
   flyway:
     enabled: false
 
-# Test configuration
 app:
   clamav:
     enabled: false
@@ -433,19 +379,15 @@ app:
     validate-content: false
     strict-mime-check: false
 
-# Disable Swagger in tests
 springdoc:
   api-docs:
     enabled: false
   swagger-ui:
     enabled: false
 
-# Minimal logging in tests
 logging:
   level:
     root: WARN
     com.payshield.frauddetector: INFO
     org.apache.tika: ERROR
     org.springframework: WARN
-
-
