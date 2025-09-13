@@ -2,18 +2,20 @@
 
 package com.payshield.frauddetector.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payshield.frauddetector.application.InvoiceDetectionService;
 import com.payshield.frauddetector.domain.ports.FileStoragePort;
 import com.payshield.frauddetector.domain.ports.NotifierPort;
+import com.payshield.frauddetector.infrastructure.encryption.FieldEncryptionService;
 import com.payshield.frauddetector.infrastructure.security.FileUploadSecurityService;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.UUID;
@@ -70,7 +72,7 @@ public class TestConfig {
                 // Simple mock parser that returns basic test data
                 InvoiceDetectionService.Parsed parsed = new InvoiceDetectionService.Parsed();
                 parsed.vendorName = "Test Vendor Corp";
-                parsed.amount = new java.math.BigDecimal("1500.00");
+                parsed.amount = new BigDecimal("1500.00");
                 parsed.currency = "USD";
                 parsed.bankIban = "GB29NWBK60161331926819";
                 parsed.bankSwift = "NWBKGB2L";
@@ -102,13 +104,22 @@ public class TestConfig {
     @Primary
     public FileUploadSecurityService testFileUploadSecurityService() {
         return new FileUploadSecurityService(
-            false, // clamAvEnabled
-            "localhost", // clamAvHost
-            3310, // clamAvPort
-            30000, // clamAvTimeout
-            false, // failSecure
-            false, // validateContent - disabled for tests
-            false  // strictMimeCheck - disabled for tests
+                false, // clamAvEnabled
+                "localhost", // clamAvHost
+                3310, // clamAvPort
+                30000, // clamAvTimeout
+                false, // failSecure
+                false, // validateContent - disabled for tests
+                false  // strictMimeCheck - disabled for tests
         );
+    }
+
+    /**
+     * Test ObjectMapper
+     */
+    @Bean
+    @Primary
+    public ObjectMapper testObjectMapper() {
+        return new ObjectMapper();
     }
 }

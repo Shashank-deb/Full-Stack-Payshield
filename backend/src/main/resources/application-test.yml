@@ -14,6 +14,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
 
   h2:
     console:
@@ -27,6 +28,11 @@ spring:
     port: 25
     username: test
     password: test
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 # CRITICAL: Application encryption configuration for tests
 app:
@@ -50,6 +56,12 @@ app:
   storage:
     basePath: ${java.io.tmpdir}/payshield-test
 
+  # Outbox settings
+  outbox:
+    enabled: true
+    poll-ms: 10000  # Longer polling for tests
+    batch-size: 10
+
   # MFA settings for tests
   mfa:
     totp:
@@ -71,7 +83,7 @@ app:
 # Security configuration for tests
 security:
   jwt:
-    secret: test-jwt-secret-key-that-is-long-enough-for-hmac-sha256-algorithm-tests
+    secret: test-jwt-secret-key-that-is-long-enough-for-hmac-sha256-algorithm-tests-12345
     ttl-seconds: 3600
 
 # Bootstrap configuration for tests
@@ -81,23 +93,17 @@ bootstrap:
     password: test-password
   defaultTenantId: 00000000-0000-0000-0000-000000000001
 
-# Logging configuration for tests
-logging:
-  level:
-    root: WARN
-    com.payshield.frauddetector: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.boot.test: DEBUG
+# Server configuration
+server:
+  port: 0  # Random port for tests
+  error:
+    include-stacktrace: always
+    include-message: always
 
-# Disable OpenAPI for tests
-springdoc:
-  api-docs:
-    enabled: false
-  swagger-ui:
-    enabled: false
-
-# Test-specific settings
+# Management/Actuator for tests
 management:
+  server:
+    port: 0  # Random port for tests
   endpoints:
     web:
       exposure:
@@ -105,3 +111,21 @@ management:
   endpoint:
     health:
       show-details: always
+
+# Logging configuration for tests
+logging:
+  level:
+    root: WARN
+    com.payshield.frauddetector: INFO
+    org.springframework.security: WARN
+    org.springframework.boot.test: INFO
+    org.springframework.web: WARN
+    org.hibernate: WARN
+    org.flywaydb: WARN
+
+# Disable OpenAPI for tests
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

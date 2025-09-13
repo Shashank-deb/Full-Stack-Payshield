@@ -30,7 +30,7 @@ class MinimalContextTest {
         }
     }
 
-    @Autowired(required = false)
+    @Autowired
     private FieldEncryptionService encryptionService;
 
     @Test
@@ -40,13 +40,39 @@ class MinimalContextTest {
 
     @Test
     void encryptionServiceWorks() {
-        if (encryptionService != null) {
-            String testData = "test-encryption-data";
-            String encrypted = encryptionService.encrypt(testData);
-            String decrypted = encryptionService.decrypt(encrypted);
+        String testData = "test-encryption-data";
 
-            assertThat(encrypted).isNotEqualTo(testData);
-            assertThat(decrypted).isEqualTo(testData);
-        }
+        // Test encryption
+        String encrypted = encryptionService.encrypt(testData);
+        assertThat(encrypted).isNotNull();
+        assertThat(encrypted).isNotEqualTo(testData);
+
+        // Test decryption
+        String decrypted = encryptionService.decrypt(encrypted);
+        assertThat(decrypted).isEqualTo(testData);
+
+        // Test hash generation
+        String hash = encryptionService.generateHash(testData);
+        assertThat(hash).isNotNull();
+        assertThat(hash).hasSize(64); // SHA-256 hex length
+    }
+
+    @Test
+    void encryptionServiceHandlesNullValues() {
+        assertThat(encryptionService.encrypt(null)).isNull();
+        assertThat(encryptionService.encrypt("")).isNull();
+        assertThat(encryptionService.decrypt(null)).isNull();
+        assertThat(encryptionService.decrypt("")).isNull();
+        assertThat(encryptionService.generateHash(null)).isNull();
+        assertThat(encryptionService.generateHash("")).isNull();
+    }
+
+    @Test
+    void encryptionDetectionWorks() {
+        String testData = "test-data";
+        String encrypted = encryptionService.encrypt(testData);
+
+        assertThat(encryptionService.isEncrypted(testData)).isFalse();
+        assertThat(encryptionService.isEncrypted(encrypted)).isTrue();
     }
 }

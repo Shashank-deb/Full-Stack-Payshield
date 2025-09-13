@@ -1,13 +1,15 @@
 // ==============================================================================
-// FIXED: JwtSecurityTest.java - Correct AssertJ assertions
+// FIXED: JwtSecurityTest.java - Correct test configuration
 // ==============================================================================
 
 package com.payshield.frauddetector.security;
 
 import com.payshield.frauddetector.config.JwtService;
+import com.payshield.frauddetector.config.TestConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Set;
@@ -15,8 +17,12 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@SpringBootTest(classes = {JwtService.class}, properties = {
+        "security.jwt.secret=test-jwt-secret-key-that-is-long-enough-for-hmac-sha256-algorithm-tests-12345",
+        "security.jwt.ttl-seconds=3600"
+})
 @ActiveProfiles("test")
+@Import(TestConfig.class)
 class JwtSecurityTest {
 
     @Autowired
@@ -44,10 +50,6 @@ class JwtSecurityTest {
 
         // FIXED: Use correct AssertJ method
         assertThat(jwtService.getRoles(token)).containsExactlyInAnyOrder("ADMIN", "ANALYST");
-
-        // Alternative methods that also work:
-        // assertThat(jwtService.getRoles(token)).isEqualTo(roles);
-        // assertThat(jwtService.getRoles(token)).containsAll(roles);
     }
 
     @Test
@@ -66,8 +68,7 @@ class JwtSecurityTest {
 
     @Test
     void shouldValidateTokenExpiration() {
-        // Test with very short TTL would require modifying JwtService constructor
-        // For now, test that a valid token doesn't report as expired
+        // Test with valid token that should not be expired
         String token = jwtService.generateToken("test@example.com", UUID.randomUUID(), Set.of("ADMIN"));
 
         assertThat(jwtService.isTokenExpired(token)).isFalse();
@@ -82,41 +83,13 @@ class JwtSecurityTest {
                 .isPresent()
                 .contains(expectedTenantId.toString());
     }
+
+    @Test
+    void shouldHandleNullInputsGracefully() {
+        // Test with null email
+        assertThat(jwtService.getSubject(null)).isEmpty();
+
+        // Test with empty string
+        assertThat(jwtService.getSubject("")).isEmpty();
+    }
 }
-
-// ==============================================================================
-// ALTERNATIVE: If you prefer the original assertion style
-// ==============================================================================
-
-/*
-@Test
-void shouldExtractRolesCorrectly() {
-    Set<String> roles = Set.of("ADMIN", "ANALYST");
-    String token = jwtService.generateToken("test@example.com", UUID.randomUUID(), roles);
-    
-    Set<String> extractedRoles = jwtService.getRoles(token);
-    
-    // Method 1: Direct equality check
-    assertThat(extractedRoles).isEqualTo(roles);
-    
-    // Method 2: Contains all elements
-    assertThat(extractedRoles).containsAll(roles);
-    assertThat(extractedRoles).hasSize(roles.size());
-    
-    // Method 3: Individual checks
-    assertThat(extractedRoles).contains("ADMIN", "ANALYST");
-    assertThat(extractedRoles).hasSize(2);
-}
-*/
-
-// ==============================================================================
-// Add these dependencies to your pom.xml if missing:
-// ==============================================================================
-
-/*
-<dependency>
-    <groupId>org.assertj</groupId>
-    <artifactId>assertj-core</artifactId>
-    <scope>test</scope>
-</dependency>
-*/

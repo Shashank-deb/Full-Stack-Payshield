@@ -1,12 +1,13 @@
 // ==============================================================================
-// Complete Integration Test Suite
-// Create: backend/src/test/java/com/payshield/frauddetector/integration/
+// Fixed Integration Test Suite
+// Create: backend/src/test/java/com/payshield/frauddetector/integration/PayShieldIntegrationTest.java
 // ==============================================================================
 
 package com.payshield.frauddetector.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payshield.frauddetector.config.JwtService;
+import com.payshield.frauddetector.config.TestConfig;
 import com.payshield.frauddetector.infrastructure.jpa.SpringUserRepository;
 import com.payshield.frauddetector.infrastructure.jpa.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,10 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebMvc
 @ActiveProfiles("test")
+@Import(TestConfig.class)
+@Sql(scripts = "/test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Transactional
 class PayShieldIntegrationTest {
 
@@ -69,6 +74,14 @@ class PayShieldIntegrationTest {
     }
 
     @Test
+    void contextLoads() {
+        // Basic context loading test
+        assert mockMvc != null;
+        assert userRepository != null;
+        assert jwtService != null;
+    }
+
+    @Test
     void authenticationFlow_ShouldWork() throws Exception {
         // Test login
         String loginRequest = """
@@ -96,7 +109,9 @@ class PayShieldIntegrationTest {
 
     @Test
     void fileUpload_ShouldWork() throws Exception {
-        byte[] pdfContent = "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n".getBytes();
+        // Create a minimal PDF file for testing
+        byte[] pdfContent = createTestPdfContent();
+
         MockMultipartFile file = new MockMultipartFile(
                 "file", "test-invoice.pdf", "application/pdf", pdfContent);
 
@@ -113,8 +128,7 @@ class PayShieldIntegrationTest {
         mockMvc.perform(multipart("/invoices/upload")
                         .file(file)
                         .file(metaPart)
-                        .header("Authorization", "Bearer " + authToken)
-                        .header("X-Tenant-Id", tenantId.toString()))
+                        .header("Authorization", "Bearer " + authToken))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").exists())
@@ -133,8 +147,7 @@ class PayShieldIntegrationTest {
         mockMvc.perform(post("/fraud/test/iban-validation")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(ibanTest)
-                        .header("Authorization", "Bearer " + authToken)
-                        .header("X-Tenant-Id", tenantId.toString()))
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.valid").isBoolean())
                 .andExpect(jsonPath("$.riskScore").isNumber());
@@ -153,8 +166,7 @@ class PayShieldIntegrationTest {
         mockMvc.perform(post("/fraud/test/comprehensive")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(comprehensiveTest)
-                        .header("Authorization", "Bearer " + authToken)
-                        .header("X-Tenant-Id", tenantId.toString()))
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.analysis.flagged").isBoolean())
                 .andExpect(jsonPath("$.analysis.riskLevel").exists());
@@ -214,6 +226,9 @@ class PayShieldIntegrationTest {
     }
 
     private void createTestUserAndAuthenticate() {
+        // Clean up any existing test user
+        userRepository.findByEmail("test@example.com").ifPresent(userRepository::delete);
+
         // Create test user
         UserEntity user = new UserEntity();
         user.setId(UUID.randomUUID());
@@ -226,5 +241,31 @@ class PayShieldIntegrationTest {
 
         // Generate auth token
         authToken = jwtService.generateToken(user.getEmail(), user.getTenantId(), user.getRoles());
+    }
+
+    private byte[] createTestPdfContent() {
+        // Create a minimal valid PDF content for testing
+        String pdfContent = "%PDF-1.4\n" +
+                "1 0 obj\n" +
+                "<< /Type /Catalog /Pages 2 0 R >>\n" +
+                "endobj\n" +
+                "2 0 obj\n" +
+                "<< /Type /Pages /Kids [3 0 R] /Count 1 >>\n" +
+                "endobj\n" +
+                "3 0 obj\n" +
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\n" +
+                "endobj\n" +
+                "xref\n" +
+                "0 4\n" +
+                "0000000000 65535 f \n" +
+                "0000000009 00000 n \n" +
+                "0000000058 00000 n \n" +
+                "0000000115 00000 n \n" +
+                "trailer\n" +
+                "<< /Size 4 /Root 1 0 R >>\n" +
+                "startxref\n" +
+                "184\n" +
+                "%%EOF";
+        return pdfContent.getBytes();
     }
 }
