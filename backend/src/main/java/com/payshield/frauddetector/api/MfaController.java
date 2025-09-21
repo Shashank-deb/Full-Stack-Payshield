@@ -58,8 +58,8 @@ public class MfaController {
 
     @PostMapping("/setup/initiate")
     @Operation(
-        summary = "Initiate MFA setup",
-        description = """
+            summary = "Initiate MFA setup",
+            description = """
         Begins the MFA setup process for the authenticated user by generating:
         - TOTP shared secret
         - QR code for authenticator app setup
@@ -69,12 +69,12 @@ public class MfaController {
         """
     )
     @ApiResponses({
-        @ApiResponse(
-            responseCode = "200", 
-            description = "MFA setup initiated successfully",
-            content = @Content(
-                mediaType = "application/json",
-                examples = @ExampleObject(value = """
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "MFA setup initiated successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
                 {
                   "qrCodeUri": "otpauth://totp/PayShield:user@example.com?secret=...",
                   "qrCodeImage": "data:image/png;base64,iVBORw0KGgoAAAANSU...",
@@ -82,15 +82,15 @@ public class MfaController {
                   "instructions": "Scan QR code with authenticator app, then verify with first code"
                 }
                 """)
-            )
-        ),
-        @ApiResponse(responseCode = "400", description = "MFA already configured for user"),
-        @ApiResponse(responseCode = "401", description = "Authentication required")
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "MFA already configured for user"),
+            @ApiResponse(responseCode = "401", description = "Authentication required")
     })
     public ResponseEntity<?> initiateMfaSetup(HttpServletRequest request) {
         UUID tenantId = TenantContext.getTenantId();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (tenantId == null || auth == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing authentication context"));
         }
@@ -119,15 +119,15 @@ public class MfaController {
         } catch (Exception e) {
             log.error("❌ Failed to initiate MFA setup for user {}: {}", auth.getName(), e.getMessage(), e);
             return ResponseEntity.internalServerError().body(
-                Map.of("error", "Failed to initiate MFA setup", "message", e.getMessage())
+                    Map.of("error", "Failed to initiate MFA setup", "message", e.getMessage())
             );
         }
     }
 
     @PostMapping("/setup/complete")
     @Operation(
-        summary = "Complete MFA setup",
-        description = """
+            summary = "Complete MFA setup",
+            description = """
         Completes MFA setup by verifying the first TOTP code from the user's authenticator app.
         On success, MFA becomes active for the user's account.
         
@@ -135,12 +135,12 @@ public class MfaController {
         """
     )
     @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            description = "MFA setup completed successfully",
-            content = @Content(
-                mediaType = "application/json",
-                examples = @ExampleObject(value = """
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "MFA setup completed successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
                 {
                   "success": true,
                   "message": "MFA setup completed successfully",
@@ -148,31 +148,31 @@ public class MfaController {
                   "deviceId": "uuid-here"
                 }
                 """)
-            )
-        ),
-        @ApiResponse(responseCode = "400", description = "Invalid TOTP code or setup not initiated"),
-        @ApiResponse(responseCode = "401", description = "Authentication required")
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid TOTP code or setup not initiated"),
+            @ApiResponse(responseCode = "401", description = "Authentication required")
     })
     public ResponseEntity<?> completeMfaSetup(
-        @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "TOTP verification request",
-            content = @Content(
-                mediaType = "application/json",
-                examples = @ExampleObject(value = """
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "TOTP verification request",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
                 {
                   "totpCode": "123456",
                   "trustDevice": true,
                   "deviceName": "My Laptop"
                 }
                 """)
+                    )
             )
-        )
-        @RequestBody @Valid MfaSetupCompleteRequest request,
-        HttpServletRequest httpRequest) {
+            @RequestBody @Valid MfaSetupCompleteRequest request,
+            HttpServletRequest httpRequest) {
 
         UUID tenantId = TenantContext.getTenantId();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (tenantId == null || auth == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing authentication context"));
         }
@@ -180,7 +180,7 @@ public class MfaController {
         try {
             String email = auth.getName();
             UUID userId = getUserIdByEmail(email);
-            
+
             String deviceFingerprint = request.trustDevice ? generateDeviceFingerprint(httpRequest) : null;
             String ipAddress = getClientIpAddress(httpRequest);
             String userAgent = httpRequest.getHeader("User-Agent");
@@ -188,13 +188,13 @@ public class MfaController {
             log.info("Completing MFA setup for user: {} with code verification", email);
 
             MfaService.MfaVerificationResult result = mfaService.completeMfaSetup(
-                userId, tenantId, request.totpCode, deviceFingerprint, ipAddress, userAgent
+                    userId, tenantId, request.totpCode, deviceFingerprint, ipAddress, userAgent
             );
 
             if (!result.isSuccess()) {
                 return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", result.getMessage()
+                        "success", false,
+                        "message", result.getMessage()
                 ));
             }
 
@@ -210,7 +210,7 @@ public class MfaController {
         } catch (Exception e) {
             log.error("❌ Failed to complete MFA setup for user {}: {}", auth.getName(), e.getMessage(), e);
             return ResponseEntity.internalServerError().body(
-                Map.of("error", "Failed to complete MFA setup", "message", e.getMessage())
+                    Map.of("error", "Failed to complete MFA setup", "message", e.getMessage())
             );
         }
     }
@@ -221,8 +221,8 @@ public class MfaController {
 
     @PostMapping("/verify")
     @Operation(
-        summary = "Verify MFA code",
-        description = """
+            summary = "Verify MFA code",
+            description = """
         Verifies a TOTP code or backup code for authentication.
         
         Supports:
@@ -233,15 +233,15 @@ public class MfaController {
         """
     )
     @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            description = "MFA verification result",
-            content = @Content(
-                mediaType = "application/json",
-                examples = {
-                    @ExampleObject(
-                        name = "Successful TOTP verification",
-                        value = """
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "MFA verification result",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "Successful TOTP verification",
+                                            value = """
                         {
                           "success": true,
                           "message": "TOTP verified successfully",
@@ -249,10 +249,10 @@ public class MfaController {
                           "method": "TOTP"
                         }
                         """
-                    ),
-                    @ExampleObject(
-                        name = "Trusted device bypass",
-                        value = """
+                                    ),
+                                    @ExampleObject(
+                                            name = "Trusted device bypass",
+                                            value = """
                         {
                           "success": true,
                           "message": "Trusted device - MFA bypassed",
@@ -260,43 +260,43 @@ public class MfaController {
                           "method": "TRUSTED_DEVICE"
                         }
                         """
-                    ),
-                    @ExampleObject(
-                        name = "Failed verification",
-                        value = """
+                                    ),
+                                    @ExampleObject(
+                                            name = "Failed verification",
+                                            value = """
                         {
                           "success": false,
                           "message": "Invalid authentication code",
                           "attemptsRemaining": 3
                         }
                         """
+                                    )
+                            }
                     )
-                }
-            )
-        ),
-        @ApiResponse(responseCode = "400", description = "Invalid request or MFA not configured"),
-        @ApiResponse(responseCode = "429", description = "Too many failed attempts - account locked")
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request or MFA not configured"),
+            @ApiResponse(responseCode = "429", description = "Too many failed attempts - account locked")
     })
     public ResponseEntity<?> verifyMfaCode(
-        @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "MFA verification request",
-            content = @Content(
-                mediaType = "application/json",
-                examples = @ExampleObject(value = """
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "MFA verification request",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
                 {
                   "code": "123456",
                   "trustDevice": false,
                   "deviceName": "Chrome on Windows"
                 }
                 """)
+                    )
             )
-        )
-        @RequestBody @Valid MfaVerificationRequest request,
-        HttpServletRequest httpRequest) {
+            @RequestBody @Valid MfaVerificationRequest request,
+            HttpServletRequest httpRequest) {
 
         UUID tenantId = TenantContext.getTenantId();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (tenantId == null || auth == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing authentication context"));
         }
@@ -304,7 +304,7 @@ public class MfaController {
         try {
             String email = auth.getName();
             UUID userId = getUserIdByEmail(email);
-            
+
             String deviceFingerprint = generateDeviceFingerprint(httpRequest);
             String ipAddress = getClientIpAddress(httpRequest);
             String userAgent = httpRequest.getHeader("User-Agent");
@@ -312,7 +312,7 @@ public class MfaController {
             log.info("Verifying MFA code for user: {} from IP: {}", email, ipAddress);
 
             MfaService.MfaVerificationResult result = mfaService.verifyMfaCode(
-                userId, tenantId, request.code, deviceFingerprint, ipAddress, userAgent
+                    userId, tenantId, request.code, deviceFingerprint, ipAddress, userAgent
             );
 
             Map<String, Object> response = new HashMap<>();
@@ -321,21 +321,21 @@ public class MfaController {
             response.put("trustedDevice", result.isTrustedDevice());
 
             if (result.isSuccess()) {
-                response.put("method", result.isTrustedDevice() ? "TRUSTED_DEVICE" : 
-                           (request.code.length() == 6 ? "TOTP" : "BACKUP_CODE"));
-                
+                response.put("method", result.isTrustedDevice() ? "TRUSTED_DEVICE" :
+                        (request.code.length() == 6 ? "TOTP" : "BACKUP_CODE"));
+
                 // Optionally trust this device for future logins
                 if (request.trustDevice && !result.isTrustedDevice()) {
                     try {
-                        UUID deviceId = mfaService.trustDevice(userId, tenantId, deviceFingerprint, 
-                                                             request.deviceName, ipAddress, userAgent);
+                        UUID deviceId = mfaService.trustDevice(userId, tenantId, deviceFingerprint,
+                                request.deviceName, ipAddress, userAgent);
                         response.put("deviceTrusted", true);
                         response.put("deviceId", deviceId.toString());
                     } catch (Exception e) {
                         log.warn("Failed to trust device for user {}: {}", email, e.getMessage());
                     }
                 }
-                
+
                 log.info("✅ MFA verification successful for user: {}", email);
             } else {
                 log.warn("❌ MFA verification failed for user: {} - {}", email, result.getMessage());
@@ -346,7 +346,7 @@ public class MfaController {
         } catch (Exception e) {
             log.error("❌ MFA verification error for user {}: {}", auth.getName(), e.getMessage(), e);
             return ResponseEntity.internalServerError().body(
-                Map.of("error", "MFA verification failed", "message", e.getMessage())
+                    Map.of("error", "MFA verification failed", "message", e.getMessage())
             );
         }
     }
@@ -357,15 +357,15 @@ public class MfaController {
 
     @GetMapping("/status")
     @Operation(
-        summary = "Get MFA status",
-        description = "Returns the current MFA configuration and status for the authenticated user"
+            summary = "Get MFA status",
+            description = "Returns the current MFA configuration and status for the authenticated user"
     )
     @ApiResponse(
-        responseCode = "200",
-        description = "MFA status retrieved successfully",
-        content = @Content(
-            mediaType = "application/json",
-            examples = @ExampleObject(value = """
+            responseCode = "200",
+            description = "MFA status retrieved successfully",
+            content = @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(value = """
             {
               "isSetup": true,
               "isEnabled": true,
@@ -383,12 +383,12 @@ public class MfaController {
               ]
             }
             """)
-        )
+            )
     )
     public ResponseEntity<?> getMfaStatus() {
         UUID tenantId = TenantContext.getTenantId();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (tenantId == null || auth == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing authentication context"));
         }
@@ -407,29 +407,29 @@ public class MfaController {
             response.put("lastUsedAt", status.getLastUsedAt());
             response.put("trustedDevicesCount", status.getTrustedDevices().size());
             response.put("trustedDevices", status.getTrustedDevices().stream()
-                .map(device -> Map.of(
-                    "id", device.getId().toString(),
-                    "deviceName", device.getDeviceName() != null ? device.getDeviceName() : "Unknown Device",
-                    "lastSeenAt", device.getLastSeenAt(),
-                    "createdAt", device.getCreatedAt(),
-                    "expiresAt", device.getExpiresAt()
-                ))
-                .toList());
+                    .map(device -> Map.of(
+                            "id", device.getId().toString(),
+                            "deviceName", device.getDeviceName() != null ? device.getDeviceName() : "Unknown Device",
+                            "lastSeenAt", device.getLastSeenAt(),
+                            "createdAt", device.getCreatedAt(),
+                            "expiresAt", device.getExpiresAt()
+                    ))
+                    .toList());
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             log.error("❌ Failed to get MFA status for user {}: {}", auth.getName(), e.getMessage(), e);
             return ResponseEntity.internalServerError().body(
-                Map.of("error", "Failed to get MFA status", "message", e.getMessage())
+                    Map.of("error", "Failed to get MFA status", "message", e.getMessage())
             );
         }
     }
 
     @PostMapping("/backup-codes/regenerate")
     @Operation(
-        summary = "Regenerate backup codes",
-        description = """
+            summary = "Regenerate backup codes",
+            description = """
         Generates new backup recovery codes for the user. 
         This invalidates all previous backup codes.
         
@@ -437,23 +437,23 @@ public class MfaController {
         """
     )
     @ApiResponse(
-        responseCode = "200",
-        description = "New backup codes generated",
-        content = @Content(
-            mediaType = "application/json",
-            examples = @ExampleObject(value = """
+            responseCode = "200",
+            description = "New backup codes generated",
+            content = @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(value = """
             {
               "backupCodes": ["ABCD1234", "EFGH5678", "IJKL9012", "..."],
               "message": "New backup codes generated. Save them securely!",
               "generatedAt": "2024-09-01T10:30:00Z"
             }
             """)
-        )
+            )
     )
     public ResponseEntity<?> regenerateBackupCodes() {
         UUID tenantId = TenantContext.getTenantId();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (tenantId == null || auth == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing authentication context"));
         }
@@ -478,15 +478,15 @@ public class MfaController {
         } catch (Exception e) {
             log.error("❌ Failed to regenerate backup codes for user {}: {}", auth.getName(), e.getMessage(), e);
             return ResponseEntity.internalServerError().body(
-                Map.of("error", "Failed to regenerate backup codes", "message", e.getMessage())
+                    Map.of("error", "Failed to regenerate backup codes", "message", e.getMessage())
             );
         }
     }
 
     @PostMapping("/disable")
     @Operation(
-        summary = "Disable MFA",
-        description = """
+            summary = "Disable MFA",
+            description = """
         Disables MFA for the authenticated user.
         
         ⚠️ **Security Warning**: This reduces account security.
@@ -494,33 +494,33 @@ public class MfaController {
         """
     )
     @ApiResponse(
-        responseCode = "200",
-        description = "MFA disabled successfully",
-        content = @Content(
-            mediaType = "application/json",
-            examples = @ExampleObject(value = """
+            responseCode = "200",
+            description = "MFA disabled successfully",
+            content = @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(value = """
             {
               "success": true,
               "message": "MFA has been disabled for your account",
               "trustedDevicesRevoked": 3
             }
             """)
-        )
+            )
     )
     public ResponseEntity<?> disableMfa(
-        @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "MFA disable confirmation",
-            content = @Content(
-                mediaType = "application/json",
-                examples = @ExampleObject(value = """
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "MFA disable confirmation",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
                 {
                   "confirmDisable": true,
                   "reason": "No longer needed"
                 }
                 """)
+                    )
             )
-        )
-        @RequestBody @Valid MfaDisableRequest request) {
+            @RequestBody @Valid MfaDisableRequest request) {
 
         if (!request.confirmDisable) {
             return ResponseEntity.badRequest().body(Map.of("error", "Must confirm MFA disable"));
@@ -528,7 +528,7 @@ public class MfaController {
 
         UUID tenantId = TenantContext.getTenantId();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (tenantId == null || auth == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing authentication context"));
         }
@@ -552,7 +552,7 @@ public class MfaController {
         } catch (Exception e) {
             log.error("❌ Failed to disable MFA for user {}: {}", auth.getName(), e.getMessage(), e);
             return ResponseEntity.internalServerError().body(
-                Map.of("error", "Failed to disable MFA", "message", e.getMessage())
+                    Map.of("error", "Failed to disable MFA", "message", e.getMessage())
             );
         }
     }
@@ -563,13 +563,13 @@ public class MfaController {
 
     @PostMapping("/devices/{deviceId}/revoke")
     @Operation(
-        summary = "Revoke trusted device",
-        description = "Revokes a trusted device, requiring MFA for future logins from that device"
+            summary = "Revoke trusted device",
+            description = "Revokes a trusted device, requiring MFA for future logins from that device"
     )
     public ResponseEntity<?> revokeTrustedDevice(@PathVariable UUID deviceId) {
         UUID tenantId = TenantContext.getTenantId();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (tenantId == null || auth == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing authentication context"));
         }
@@ -594,7 +594,7 @@ public class MfaController {
         } catch (Exception e) {
             log.error("❌ Failed to revoke trusted device {} for user {}: {}", deviceId, auth.getName(), e.getMessage(), e);
             return ResponseEntity.internalServerError().body(
-                Map.of("error", "Failed to revoke trusted device", "message", e.getMessage())
+                    Map.of("error", "Failed to revoke trusted device", "message", e.getMessage())
             );
         }
     }
@@ -613,13 +613,13 @@ public class MfaController {
         String userAgent = request.getHeader("User-Agent");
         String acceptLanguage = request.getHeader("Accept-Language");
         String acceptEncoding = request.getHeader("Accept-Encoding");
-        
-        String fingerprint = String.format("%s|%s|%s", 
-            userAgent != null ? userAgent : "",
-            acceptLanguage != null ? acceptLanguage : "",
-            acceptEncoding != null ? acceptEncoding : ""
+
+        String fingerprint = String.format("%s|%s|%s",
+                userAgent != null ? userAgent : "",
+                acceptLanguage != null ? acceptLanguage : "",
+                acceptEncoding != null ? acceptEncoding : ""
         );
-        
+
         return Integer.toHexString(fingerprint.hashCode());
     }
 
@@ -628,12 +628,12 @@ public class MfaController {
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
             return xForwardedFor.split(",")[0].trim();
         }
-        
+
         String xRealIp = request.getHeader("X-Real-IP");
         if (xRealIp != null && !xRealIp.isEmpty()) {
             return xRealIp;
         }
-        
+
         return request.getRemoteAddr();
     }
 

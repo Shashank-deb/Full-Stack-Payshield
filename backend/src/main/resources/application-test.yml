@@ -1,20 +1,25 @@
-# backend/src/test/resources/application-test.yml
+# --- Fixed test configuration ---
 
 spring:
+  profiles:
+    active: test
+
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none      # let schema.sql create objects
     show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
         format_sql: false
+        globally_quoted_identifiers: false
+        jdbc.time_zone: UTC
 
   h2:
     console:
@@ -34,35 +39,37 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
-# CRITICAL: Application encryption configuration for tests
+  sql:
+    init:
+      mode: always
+      platform: h2
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:test-data.sql
+
+# Encryption config for tests (used by FieldEncryptionService in context-driven tests)
 app:
   encryption:
-    key: ${PSP_AES_KEY:NywLhbIA9UvNfurxHK6JkZKYP7g6M4k1qGPAXMMppiQ=}  # Base64 encoded 32-byte key
+    key: NywLhbIA9UvNfurxHK6JkZKYP7g6M4k1qGPAXMMppiQ=  # 32-byte Base64 test key
     key-version: 1
     algorithm: AES-256-GCM
 
-  # File upload settings
   upload:
     max-file-size: 10MB
-    validate-content: false  # Disable for tests
-    strict-mime-check: false # Disable for tests
+    validate-content: false
+    strict-mime-check: false
 
-  # ClamAV disabled for tests
   clamav:
     enabled: false
     fail-secure: false
 
-  # Storage settings
   storage:
-    basePath: ${java.io.tmpdir}/payshield-test
+    base-path: ${java.io.tmpdir}/payshield-test
 
-  # Outbox settings
   outbox:
     enabled: true
-    poll-ms: 10000  # Longer polling for tests
+    poll-ms: 10000
     batch-size: 10
 
-  # MFA settings for tests
   mfa:
     totp:
       issuer-name: PayShield-Test
@@ -80,30 +87,23 @@ app:
       lockout-duration-minutes: 60
       window-minutes: 15
 
-# Security configuration for tests
 security:
   jwt:
     secret: test-jwt-secret-key-that-is-long-enough-for-hmac-sha256-algorithm-tests-12345
     ttl-seconds: 3600
 
-# Bootstrap configuration for tests
 bootstrap:
   admin:
     email: test-admin@example.com
     password: test-password
   defaultTenantId: 00000000-0000-0000-0000-000000000001
 
-# Server configuration
 server:
-  port: 0  # Random port for tests
-  error:
-    include-stacktrace: always
-    include-message: always
+  port: 0
 
-# Management/Actuator for tests
 management:
   server:
-    port: 0  # Random port for tests
+    port: 0
   endpoints:
     web:
       exposure:
@@ -112,7 +112,6 @@ management:
     health:
       show-details: always
 
-# Logging configuration for tests
 logging:
   level:
     root: WARN
@@ -120,10 +119,10 @@ logging:
     org.springframework.security: WARN
     org.springframework.boot.test: INFO
     org.springframework.web: WARN
-    org.hibernate: WARN
+    org.hibernate: ERROR
     org.flywaydb: WARN
+    org.h2: WARN
 
-# Disable OpenAPI for tests
 springdoc:
   api-docs:
     enabled: false

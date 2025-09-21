@@ -46,7 +46,7 @@ public class FieldEncryptionService {
             @Value("${app.encryption.key:}") String base64Key,
             @Value("${app.encryption.key-version:1}") int keyVersion,
             ObjectMapper objectMapper) {
-        
+
         this.keyVersion = keyVersion;
         this.secureRandom = new SecureRandom();
         this.objectMapper = objectMapper;
@@ -60,8 +60,8 @@ public class FieldEncryptionService {
             byte[] decodedKey = Base64.getDecoder().decode(base64Key);
             if (decodedKey.length != AES_KEY_LENGTH) {
                 throw new IllegalArgumentException(
-                    String.format("Invalid key length: %d bytes. Expected %d bytes for AES-256.", 
-                    decodedKey.length, AES_KEY_LENGTH));
+                        String.format("Invalid key length: %d bytes. Expected %d bytes for AES-256.",
+                                decodedKey.length, AES_KEY_LENGTH));
             }
             this.secretKey = new SecretKeySpec(decodedKey, ALGORITHM);
             log.info("✅ Field encryption initialized - Algorithm: AES-256-GCM, KeyVersion: {}", keyVersion);
@@ -95,10 +95,10 @@ public class FieldEncryptionService {
 
             // Create envelope with metadata
             EncryptionEnvelope envelope = new EncryptionEnvelope(
-                keyVersion,
-                TRANSFORMATION,
-                Base64.getEncoder().encodeToString(iv),
-                Base64.getEncoder().encodeToString(encryptedData)
+                    keyVersion,
+                    TRANSFORMATION,
+                    Base64.getEncoder().encodeToString(iv),
+                    Base64.getEncoder().encodeToString(encryptedData)
             );
 
             // Serialize and encode the envelope
@@ -242,10 +242,10 @@ public class FieldEncryptionService {
      * Encryption envelope for metadata
      */
     public record EncryptionEnvelope(
-        Integer keyVersion,
-        String algorithm,
-        String iv,
-        String data
+            Integer keyVersion,
+            String algorithm,
+            String iv,
+            String data
     ) {}
 
     /**
