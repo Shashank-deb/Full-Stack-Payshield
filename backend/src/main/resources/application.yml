@@ -1,0 +1,393 @@
+spring:
+  application:
+    name: payshield-core
+  profiles:
+    active: local
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: sharmashashank446@gmail.com
+    password: thkp njdn qpam rvdt
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/payshield}
+    username: ${DB_USERNAME:payshield}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:10}
+      minimum-idle: ${DB_POOL_MIN:2}
+      connection-timeout: ${DB_POOL_TIMEOUT_MS:30000}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc.lob.non_contextual_creation: true
+    show-sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:10MB}
+      max-request-size: ${MAX_REQUEST_SIZE:10MB}
+      resolve-lazily: true
+      file-size-threshold: 0
+      location: ${TEMP_DIR:${java.io.tmpdir}}/payshield
+
+  mvc:
+    async:
+      request-timeout: 60000
+
+server:
+  port: ${APP_PORT:2406}
+  server-header:
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-binding-errors: never
+  max-http-request-header-size: ${MAX_HEADER_SIZE:8KB}
+  tomcat:
+    connection-timeout: 20s
+    keep-alive-timeout: 20s
+    max-connections: 8192
+    accept-count: 100
+    threads:
+      max: 200
+      min-spare: 10
+
+management:
+  server:
+    port: ${ACTUATOR_PORT:9090}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+    info:
+      env:
+        enabled: false
+
+security:
+  jwt:
+    secret: ${SECURITY_JWT_SECRET}
+    ttl-seconds: ${SECURITY_JWT_TTL_SECONDS:3600}
+
+bootstrap:
+  admin:
+    email: ${BOOTSTRAP_ADMIN_EMAIL}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD}
+  defaultTenantId: ${BOOTSTRAP_DEFAULT_TENANT_ID:00000000-0000-0000-0000-000000000001}
+
+app:
+  outbox:
+    enabled: ${OUTBOX_ENABLED:true}
+    poll-ms: ${OUTBOX_POLL_INTERVAL_MS:5000}
+    batch-size: ${OUTBOX_BATCH_SIZE:50}
+
+  storage:
+    basePath: ${STORAGE_BASE_PATH:var/storage}
+
+  upload:
+    max-file-size: ${MAX_FILE_SIZE:10MB}
+    allowed-mime-types:
+      - application/pdf
+    validate-content: ${VALIDATE_FILE_CONTENT:true}
+    strict-mime-check: ${STRICT_MIME_CHECK:true}
+
+  clamav:
+    enabled: ${CLAMAV_ENABLED:false}
+    host: ${CLAMAV_HOST:clamav}
+    port: ${CLAMAV_PORT:3310}
+    timeout: ${CLAMAV_TIMEOUT:30000}
+    connection-timeout: ${CLAMAV_CONNECTION_TIMEOUT:5000}
+    fail-secure: ${CLAMAV_FAIL_SECURE:false}
+
+  encryption:
+    key: ${PSP_AES_KEY}
+    algorithm: AES-256-GCM
+    key-version: 1
+    # key-file: ${PSP_AES_KEY_FILE:/secrets/encryption.key}
+
+    mfa:
+      totp:
+        issuer-name: ${MFA_ISSUER_NAME:PayShield}
+        algorithm: ${MFA_ALGORITHM:HmacSHA1}
+        digits: ${MFA_DIGITS:6}
+        period-seconds: ${MFA_PERIOD_SECONDS:30}
+        window-size: ${MFA_WINDOW_SIZE:1}
+      secrets:
+        secret-length: ${MFA_SECRET_LENGTH:32}
+      qr-code:
+        width: ${MFA_QR_WIDTH:300}
+        height: ${MFA_QR_HEIGHT:300}
+      backup-codes:
+        count: ${MFA_BACKUP_CODES_COUNT:10}
+        length: ${MFA_BACKUP_CODE_LENGTH:8}
+      rate-limiting:
+        max-attempts: ${MFA_MAX_ATTEMPTS:5}
+        window-minutes: ${MFA_RATE_WINDOW_MINUTES:15}
+        lockout-duration-minutes: ${MFA_LOCKOUT_DURATION_MINUTES:60}
+      trusted-devices:
+        enabled: ${MFA_TRUSTED_DEVICES_ENABLED:true}
+        expiry-days: ${MFA_TRUSTED_DEVICE_EXPIRY_DAYS:30}
+        max-devices-per-user: ${MFA_MAX_TRUSTED_DEVICES:5}
+      security:
+        enable-location-tracking: ${MFA_ENABLE_LOCATION_TRACKING:true}
+        enable-device-fingerprinting: ${MFA_ENABLE_DEVICE_FINGERPRINTING:true}
+        suspicious-location-threshold-km: ${MFA_SUSPICIOUS_LOCATION_THRESHOLD:500}
+      cache:
+        failed-attempts-ttl-minutes: ${MFA_CACHE_FAILED_ATTEMPTS_TTL:60}
+        device-fingerprint-ttl-hours: ${MFA_CACHE_DEVICE_FINGERPRINT_TTL:24}
+      notifications:
+        notify-on-new-device: ${MFA_NOTIFY_NEW_DEVICE:true}
+        notify-on-suspicious-login: ${MFA_NOTIFY_SUSPICIOUS_LOGIN:true}
+        notify-on-backup-code-usage: ${MFA_NOTIFY_BACKUP_CODE_USAGE:true}
+
+springdoc:
+  api-docs:
+    enabled: ${API_DOCS_ENABLED:true}
+    path: /v3/api-docs
+    groups:
+      enabled: true
+  swagger-ui:
+    enabled: ${SWAGGER_UI_ENABLED:true}
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    url: /v3/api-docs
+    display-request-duration: true
+    groups-order: DESC
+    operations-sorter: method
+    disable-swagger-default-url: true
+    use-root-path: true
+    try-it-out-enabled: true
+    filter: true
+    oauth2-redirect-url: /swagger-ui/oauth2-redirect.html
+  show-actuator: false
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  group-configs:
+    - group: 'authentication'
+      display-name: 'Authentication APIs'
+      paths-to-match: '/auth/**'
+    - group: 'invoice-processing'
+      display-name: 'Invoice Processing APIs'
+      paths-to-match: '/invoices/**'
+    - group: 'case-management'
+      display-name: 'Case Management APIs'
+      paths-to-match: '/cases/**'
+    - group: 'administration'
+      display-name: 'Administration APIs'
+      paths-to-match: '/outbox/**'
+
+logging:
+  level:
+    org.springframework.security: ${SECURITY_LOG_LEVEL:WARN}
+    org.hibernate.SQL: ERROR
+    org.hibernate.type.descriptor.sql: ERROR
+    org.springframework.web: ${WEB_LOG_LEVEL:WARN}
+    org.springframework.web.cors: DEBUG
+    com.payshield.frauddetector.infrastructure.security: INFO
+    com.payshield.frauddetector.api.InvoiceController: INFO
+    org.springframework.web.multipart: ${MULTIPART_LOG_LEVEL:WARN}
+    org.apache.tika: ${TIKA_LOG_LEVEL:WARN}
+    org.apache.tika.parser.external: WARN
+    org.apache.tika.parser.ocr: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ${LOG_FILE:/app/logs/payshield.log}
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      total-size-cap: 500MB
+      max-history: 30
+
+otel:
+  resource:
+    attributes: service.name=${spring.application.name:payshield-core}
+  exporter:
+    otlp:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:}
+
+---
+
+# Local development profile
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+server:
+  port: 2406
+
+management:
+  server:
+    port: 9090
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+
+security:
+  jwt:
+    secret: dev_secret_key_123456789012345678901234567890
+    ttl-seconds: 3600
+
+bootstrap:
+  admin:
+    email: admin@yourcompany.com
+    password: 8eXlClc9INVRyGQ8
+  defaultTenantId: 00000000-0000-0000-0000-000000000001
+
+app:
+  clamav:
+    enabled: true
+    fail-secure: false
+  upload:
+    strict-mime-check: true
+    validate-content: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    try-it-out-enabled: true
+    filter: true
+    display-request-duration: true
+    urls-primary-name: 'PayShield API v1.0'
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.web.cors: DEBUG
+    org.springframework.web.multipart: DEBUG
+    com.payshield.frauddetector.config: DEBUG
+    com.payshield.frauddetector.config.JwtAuthFilter: DEBUG
+    com.payshield.frauddetector.config.RequestLoggingFilter: DEBUG
+    com.payshield.frauddetector.domain.DetectionEngine: DEBUG
+    com.payshield.frauddetector.application.InvoiceDetectionService: DEBUG
+    com.payshield.frauddetector.infrastructure.parser.TikaPdfParser: DEBUG
+    com.payshield.frauddetector.infrastructure.security: DEBUG
+    org.apache.tika: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springframework.web.filter: DEBUG
+    org.apache.tika.parser.external: WARN
+    org.apache.tika.parser.ocr: WARN
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name:
+
+---
+
+# Production profile
+spring:
+  config:
+    activate:
+      on-profile: production
+
+app:
+  clamav:
+    enabled: true
+    fail-secure: true
+  storage:
+    scan-on-upload: true
+  upload:
+    strict-mime-check: true
+    validate-content: true
+  # encryption:
+  #   algorithm: AES/GCM/NoPadding
+  #   key: ${APP_ENCRYPTION_KEY:}
+  #   key-file: ${APP_ENCRYPTION_KEY_FILE:}
+
+server:
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-binding-errors: never
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.payshield.frauddetector: INFO
+    com.payshield.frauddetector.infrastructure.security: INFO
+    com.payshield.frauddetector.api.InvoiceController: INFO
+    org.apache.tika.parser.external: ERROR
+    org.apache.tika.parser.ocr: ERROR
+  file:
+    name: /app/logs/payshield.log
+
+---
+
+# Testing profile
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  flyway:
+    enabled: false
+
+app:
+  clamav:
+    enabled: false
+  upload:
+    validate-content: false
+    strict-mime-check: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.payshield.frauddetector: INFO
+    org.apache.tika: ERROR
+    org.springframework: WARN

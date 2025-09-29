@@ -1,0 +1,69 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/payshield?TimeZone=Asia/Kolkata
+    username: payshield
+    password: payshield123
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+server:
+  port: 2406
+
+management:
+  server:
+    port: 9090
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+
+security:
+  jwt:
+    secret: dev_secret_key_123456789012345678901234567890
+    ttl-seconds: 3600
+
+bootstrap:
+  admin:
+    email: admin@local.dev
+    password: admin
+  defaultTenantId: 00000000-0000-0000-0000-000000000001
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+# Enhanced debug logging
+logging:
+  level:
+    root: INFO
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.web.cors: DEBUG
+    com.payshield.frauddetector.config: DEBUG
+    com.payshield.frauddetector.config.JwtAuthFilter: DEBUG
+    com.payshield.frauddetector.config.RequestLoggingFilter: DEBUG
+    com.payshield.frauddetector.domain.DetectionEngine: DEBUG
+    com.payshield.frauddetector.application.InvoiceDetectionService: DEBUG
+    com.payshield.frauddetector.infrastructure.parser.TikaPdfParser: DEBUG
+    # Show all HTTP requests and responses
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springframework.web.filter: DEBUG
+    org.apache.catalina.core.ContainerBase: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+app:
+  encryption:
+    key: ${PSP_AES_KEY:NywLhbIA9UvNfurxHK6JkZKYP7g6M4k1qGPAXMMppiQ=}
+    key-version: ${ENCRYPTION_KEY_VERSION:1}
+    algorithm: ${ENCRYPTION_ALGORITHM:AES-256-GCM}
+
+

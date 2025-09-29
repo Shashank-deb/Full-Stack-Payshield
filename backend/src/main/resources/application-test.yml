@@ -1,0 +1,130 @@
+# --- Fixed test configuration ---
+
+spring:
+  profiles:
+    active: test
+
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  jpa:
+    hibernate:
+      ddl-auto: none      # let schema.sql create objects
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+        globally_quoted_identifiers: false
+        jdbc.time_zone: UTC
+
+  h2:
+    console:
+      enabled: true
+
+  flyway:
+    enabled: false
+
+  mail:
+    host: localhost
+    port: 25
+    username: test
+    password: test
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  sql:
+    init:
+      mode: always
+      platform: h2
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:test-data.sql
+
+# Encryption config for tests (used by FieldEncryptionService in context-driven tests)
+app:
+  encryption:
+    key: NywLhbIA9UvNfurxHK6JkZKYP7g6M4k1qGPAXMMppiQ=  # 32-byte Base64 test key
+    key-version: 1
+    algorithm: AES-256-GCM
+
+  upload:
+    max-file-size: 10MB
+    validate-content: false
+    strict-mime-check: false
+
+  clamav:
+    enabled: false
+    fail-secure: false
+
+  storage:
+    base-path: ${java.io.tmpdir}/payshield-test
+
+  outbox:
+    enabled: true
+    poll-ms: 10000
+    batch-size: 10
+
+  mfa:
+    totp:
+      issuer-name: PayShield-Test
+      digits: 6
+      period-seconds: 30
+      window-size: 1
+    backup-codes:
+      count: 10
+      length: 8
+    trusted-devices:
+      enabled: true
+      expiry-days: 30
+    rate-limiting:
+      max-attempts: 5
+      lockout-duration-minutes: 60
+      window-minutes: 15
+
+security:
+  jwt:
+    secret: test-jwt-secret-key-that-is-long-enough-for-hmac-sha256-algorithm-tests-12345
+    ttl-seconds: 3600
+
+bootstrap:
+  admin:
+    email: test-admin@example.com
+    password: test-password
+  defaultTenantId: 00000000-0000-0000-0000-000000000001
+
+server:
+  port: 0
+
+management:
+  server:
+    port: 0
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: WARN
+    com.payshield.frauddetector: INFO
+    org.springframework.security: WARN
+    org.springframework.boot.test: INFO
+    org.springframework.web: WARN
+    org.hibernate: ERROR
+    org.flywaydb: WARN
+    org.h2: WARN
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
