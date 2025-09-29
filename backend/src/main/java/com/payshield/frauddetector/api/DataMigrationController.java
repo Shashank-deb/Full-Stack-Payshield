@@ -30,6 +30,7 @@ import java.util.*;
 @Tag(name = "Data Migration", description = "Admin-only endpoints for encrypting existing data")
 @SecurityRequirement(name = "Bearer Authentication")
 @PreAuthorize("hasRole('ADMIN') or hasRole('MFA_PENDING')")
+//This is the DataMigrationController file which is used for ADMIN an MFA_PENDING
 public class DataMigrationController {
 
     private static final Logger log = LoggerFactory.getLogger(DataMigrationController.class);
