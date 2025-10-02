@@ -106,9 +106,9 @@ public class SecurityConfig {
                       .requestMatchers("/invoices/**").hasAnyRole("ANALYST", "ADMIN", "APPROVER")
 
                       // Cases endpoints - specifically require APPROVER or ADMIN
-                      .requestMatchers(HttpMethod.POST, "/cases/*/approve").hasAnyRole("APPROVER", "ADMIN")
-                      .requestMatchers(HttpMethod.POST, "/cases/*/reject").hasAnyRole("APPROVER", "ADMIN")
-                      .requestMatchers("/cases/**").hasAnyRole("APPROVER", "ADMIN")
+                      .requestMatchers(HttpMethod.POST, "/cases/*/approve").hasAnyRole("APPROVER", "ADMIN","MFA_PENDING")
+                      .requestMatchers(HttpMethod.POST, "/cases/*/reject").hasAnyRole("APPROVER", "ADMIN","MFA_PENDING")
+                      .requestMatchers("/cases/**").hasAnyRole("APPROVER", "ADMIN","MFA_PENDING")
 
                       // ✅ Fraud detection testing endpoints - available to analysts and admins
                       .requestMatchers("/fraud/**").hasAnyRole("ANALYST", "ADMIN")
